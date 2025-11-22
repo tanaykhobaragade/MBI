@@ -1,176 +1,302 @@
 # MBI - Market Breadth Indicator
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![uv](https://img.shields.io/badge/uv-package%20manager-purple)](https://github.com/astral-sh/uv)
+[![yfinance](https://img.shields.io/badge/Data-yFinance-orange)](https://github.com/ranaroussi/yfinance)
 
-Automated Market Breadth Indicator (MBI) for **NIFTY MIDSMALLCAP 400** - Daily NSE stock data processing and breadth analysis for swing trading.
+**Automated Market Breadth Indicator (MBI) for NIFTY MIDSMALLCAP 400** - Daily NSE stock data processing and breadth analysis for swing trading decisions.
+
+🔗 **Live Dashboard**: [https://tanaykhobaragade.github.io/MBI/](https://tanaykhobaragade.github.io/MBI/)
+
+---
 
 ## 📊 Overview
 
-This project automates the calculation of market breadth metrics for the NIFTY MIDSMALLCAP 400 index. It fetches daily OHLCV data from NSE, calculates various breadth indicators, and outputs the results to CSV files that can be easily imported into Excel or Google Sheets.
+This project automates the calculation of market breadth metrics for the **NIFTY MIDSMALLCAP 400 index** (400 stocks). It fetches daily OHLCV data via **yFinance**, calculates 16 breadth indicators, and outputs results accessible from any device via **GitHub Pages** or direct CSV import.
 
-### Key Features
+### ✨ Key Features
 
 - ✅ **Fully Automated**: GitHub Actions runs daily at 6 PM IST
-- ✅ **No Infrastructure Required**: Runs entirely on GitHub's free tier
-- ✅ **Device Agnostic**: Access CSV data from any device
-- ✅ **Historical Data**: Maintains 1+ year of historical breadth data
-- ✅ **Excel/Sheets Ready**: Direct import via raw GitHub URLs
+- ✅ **Zero Cost**: No API charges, runs on GitHub's free tier  
+- ✅ **Modern Stack**: Python 3.12+ with UV package manager
+- ✅ **Auto-Adjusted Data**: Stock splits & bonuses handled automatically
+- ✅ **Device Agnostic**: Access via web dashboard, Excel, or Google Sheets
+- ✅ **Timezone-Safe**: Proper IST/UTC handling throughout
+- ✅ **Historical Data**: Maintains 1+ year of breadth history
+
+---
 
 ## 📈 Metrics Calculated
 
 | Metric | Description |
 |--------|-------------|
-| **Date** | Trading date |
+| **Date** | Trading date (IST) |
 | **52WH(%)** | % of stocks hitting new 52-week high |
 | **52WL(%)** | % of stocks hitting new 52-week low |
-| **4.5+(%)** | % of stocks up by 4.5%+ in a day |
-| **4.5-(%)** | % of stocks down by 4.5%+ in a day |
-| **10+(%)** | % of stocks above 10 SMA |
-| **10-(%)** | % of stocks below 10 SMA |
-| **20+(%)** | % of stocks above 20 SMA |
-| **20-(%)** | % of stocks below 20 SMA |
-| **50+(%)** | % of stocks above 50 SMA |
-| **50-(%)** | % of stocks below 50 SMA |
-| **200+(%)** | % of stocks above 200 SMA |
-| **200-(%)** | % of stocks below 200 SMA |
-| **4.5r** | Ratio: [4.5+(%) / 4.5-(%)] × 100 |
-| **20sma** | Ratio: [20+(%) / 20-(%)] × 100 |
-| **50sma** | Ratio: [50+(%) / 50-(%)] × 100 |
+| **4.5+(%)** | % of stocks up by 4.5%+ today |
+| **4.5-(%)** | % of stocks down by 4.5%+ today |
+| **10+(%)** | % of stocks above 10-day SMA |
+| **10-(%)** | % of stocks below 10-day SMA |
+| **20+(%)** | % of stocks above 20-day SMA |
+| **20-(%)** | % of stocks below 20-day SMA |
+| **50+(%)** | % of stocks above 50-day SMA |
+| **50-(%)** | % of stocks below 50-day SMA |
+| **200+(%)** | % of stocks above 200-day SMA |
+| **200-(%)** | % of stocks below 200-day SMA |
+| **4.5r** | Momentum Ratio: `[4.5+(%) / 4.5-(%)] × 100` |
+| **20sma** | Trend Ratio: `[20+(%) / 20-(%)] × 100` |
+| **50sma** | Trend Ratio: `[50+(%) / 50-(%)] × 100` |
+
+---
 
 ## 🏗️ Project Structure
 
 ```
 MBI/
-├── .github/
-│   └── workflows/
-│       ├── fetch_daily_data.yml      # Daily automation
-│       └── initialize_historical.yml  # One-time setup
+├── .github/workflows/
+│   ├── fetch_daily_data.yml           # Daily 6 PM IST automation
+│   └── initialize_historical.yml      # One-time historical data fetch
 ├── data/
-│   ├── raw/                          # Per-stock CSV files
+│   ├── raw/
+│   │   ├── stocks/                    # Individual stock CSVs (400 files)
+│   │   └── daily/                     # Date-wise consolidated data
 │   ├── processed/
-│   │   └── market_breadth.csv        # Main output file
+│   │   └── market_breadth.csv         # Final MBI output
 │   └── meta/
-│       ├── nifty_midsmallcap400.csv  # Index constituents
-│       └── nse_holidays.json         # Trading calendar
+│       ├── nifty_midsmallcap400.csv   # Index constituents
+│       └── nse_holidays_YYYY.json     # Holiday calendars
 ├── src/
-│   ├── config.py                     # Configuration
-│   ├── utils.py                      # Helper functions
-│   ├── data_fetch.py                 # Data fetching
-│   └── calculate_breadth.py          # MBI calculations
-├── requirements.txt
-├── README.md
-└── LICENSE
+│   ├── core/                          # Config, timezone, logging
+│   ├── fetchers/                      # yFinance data fetching
+│   ├── processors/                    # Data validation & MBI calculation
+│   └── utils/                         # Holidays, file ops, helpers
+├── docs/                              # GitHub Pages dashboard
+│   ├── index.html
+│   └── assets/
+├── pyproject.toml                     # UV project configuration
+├── .python-version                    # Python 3.12
+└── README.md
 ```
+
+---
 
 ## 🚀 Quick Start
 
-### Import into Google Sheets
+### Access Data (No Installation Required)
 
+#### 📊 **Option 1: Live Dashboard**
+Visit: **[https://tanaykhobaragade.github.io/MBI/](https://tanaykhobaragade.github.io/MBI/)**
+
+#### 📑 **Option 2: Google Sheets Import**
 ```
 =IMPORTDATA("https://raw.githubusercontent.com/tanaykhobaragade/MBI/main/data/processed/market_breadth.csv")
 ```
 
-### Import into Excel
-
+#### 📊 **Option 3: Excel Import**
 1. **Data** → **Get Data** → **From Web**
 2. Enter URL: `https://raw.githubusercontent.com/tanaykhobaragade/MBI/main/data/processed/market_breadth.csv`
 3. Click **Load**
 
+---
+
 ## 💻 Local Development
 
 ### Prerequisites
+- **Python 3.12+**
+- **UV package manager** (recommended) or pip
+- **Git**
 
-- Python 3.8+
-- Git
-
-### Installation
+### Installation with UV
 
 ```bash
-# Clone the repository
+# Install UV (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone repository
 git clone https://github.com/tanaykhobaragade/MBI.git
 cd MBI
 
-# Install dependencies
-pip install -r requirements.txt
+# Create virtual environment and install dependencies
+uv sync
 
-# Run data fetch
-python src/data_fetch.py
-
-# Calculate breadth metrics
-python src/calculate_breadth.py
+# Activate virtual environment
+source .venv/bin/activate  # Linux/Mac
+# or
+.venv\Scripts\activate  # Windows
 ```
 
-## 🔄 Automation Details
+### Installation with pip (alternative)
 
-### Daily Workflow
+```bash
+git clone https://github.com/tanaykhobaragade/MBI.git
+cd MBI
 
-1. **Trigger**: GitHub Actions at 6:00 PM IST (Mon-Fri)
-2. **Check**: Is today a trading day?
-3. **Fetch**: Download EOD data for all 400 stocks
-4. **Calculate**: Compute all MBI metrics
-5. **Update**: Commit updated CSVs to repository
+python -m venv .venv
+source .venv/bin/activate
 
-### Data Sources
+pip install -e .
+```
 
-- **Stock Data**: NSE India official endpoints
-- **Constituents**: NIFTY MIDSMALLCAP 400 index factsheet
-- **Holidays**: NSE trading calendar
+### Running Locally
 
-## 📊 Usage for Swing Trading
+```bash
+# Fetch today's data
+python src/main.py fetch-daily
 
-### Interpretation Guidelines
+# Initialize historical data (one-time)
+python src/main.py init-historical --days 365
 
-- **4.5r > 400**: Strong bullish momentum, breakouts working
+# Calculate breadth for a specific date
+python src/main.py calculate-breadth --date 2024-11-22
+
+# Run tests
+uv run pytest
+```
+
+---
+
+## 🔄 Automation Workflow
+
+### Daily Update Process (6 PM IST)
+
+```
+GitHub Actions Trigger (Mon-Fri)
+         ↓
+   Check: Is Trading Day?
+     (Skip weekends/holidays)
+         ↓  Yes
+   Convert IST → UTC
+         ↓
+   Fetch EOD Data (yFinance)
+     • 400 stocks
+     • Auto-adjusted for splits
+         ↓
+   Save to data/raw/stocks/
+         ↓
+   Consolidate → data/raw/daily/
+         ↓
+   Calculate 16 MBI Metrics
+         ↓
+   Append → market_breadth.csv
+         ↓
+   Commit & Push to GitHub
+         ↓
+   GitHub Pages Auto-Deploy
+```
+
+---
+
+## 🛡️ Data Quality & Reliability
+
+### ✅ Stock Splits & Bonuses
+- **Automatically handled** by yFinance
+- Historical prices are pre-adjusted
+- No manual intervention required
+
+### ✅ Timezone Management
+- **NSE**: Operates in IST (UTC+5:30)
+- **yFinance**: Uses UTC timestamps
+- **Our Solution**: Proper IST ↔ UTC conversion throughout
+
+### ✅ Holiday Handling
+- **NSE trading calendar** integration
+- **Automatic skip** of weekends and holidays
+- **Updated annually** from NSE official sources
+
+### ✅ Data Validation
+- Minimum 350/400 stocks with valid data
+- Anomaly detection for suspicious price jumps
+- Volume consistency checks
+
+---
+
+## 📊 Trading Interpretation Guidelines
+
+### Momentum Signals
+- **4.5r > 400**: Strong bullish momentum, breakouts working well
+- **4.5r > 200**: Moderate bullish momentum
+- **4.5r < 100**: Weak momentum, avoid new positions
+
+### Trend Strength
 - **20sma & 50sma > 150**: Strong uptrend confirmation
-- **52WH > 52WL**: More stocks making new highs (bullish)
-- **High 20+(%)**: Majority of stocks in short-term uptrend
+- **20sma & 50sma < 80**: Weak trend or downtrend
+
+### Market Health
+- **52WH(%) > 52WL(%)**: More stocks making new highs (bullish)
+- **High 20+(%)**: Majority in short-term uptrend
+- **High 200+(%)**: Long-term bullish market structure
 
 ### Risk Management
-
-- Reduce position size when ratios are declining
-- Avoid new positions when 4.5r < 100 (weak momentum)
+- Reduce position size when breadth ratios declining
+- Avoid new trades when 4.5r < 100
 - Use breadth divergence as early warning signal
 
-## 🛠️ Configuration
+---
 
-Edit `src/config.py` to customize:
+## 🔧 Configuration
 
-- SMA periods (default: 10, 20, 50, 200)
-- Percentage thresholds (default: 4.5%)
-- Data fetch intervals
-- Index constituents
+Edit `src/core/config.py` to customize:
 
-## 📝 Data Handling
+```python
+# SMA periods
+SMA_PERIODS = [10, 20, 50, 200]
 
-### Corporate Actions
+# Percentage threshold for daily movers
+DAILY_CHANGE_THRESHOLD = 4.5
 
-- **Splits/Bonuses**: Data sources provide adjusted prices
-- **Verification**: Cross-checked with NSE corporate actions
+# Historical data range
+HISTORICAL_DAYS = 365
 
-### Holidays
+# Minimum valid stocks required
+MIN_VALID_STOCKS = 350  # out of 400
+```
 
-- **NSE Calendar**: Automatically fetched and updated
-- **Weekends**: Skipped automatically
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+---
+
 ## ⚠️ Disclaimer
 
-This tool is for educational and informational purposes only. It is not financial advice. Always do your own research before making investment decisions.
-
-## 📧 Contact
-
-Tanay Khobaragade - [@tanaykhobaragade](https://github.com/tanaykhobaragade)
-
-Project Link: [https://github.com/tanaykhobaragade/MBI](https://github.com/tanaykhobaragade/MBI)
+This tool is for **educational and informational purposes only**. It is **not financial advice**. Always:
+- Do your own research before trading
+- Understand the risks involved in stock trading
+- Consult with a financial advisor for investment decisions
+- Past market breadth does not guarantee future results
 
 ---
 
-**Happy Trading! 📈**
+## 🙏 Acknowledgments
+
+- **yFinance**: For reliable, auto-adjusted stock data
+- **GitHub Actions**: For free automation infrastructure  
+- **GitHub Pages**: For free dashboard hosting
+- **NSE India**: For market data and indices
+
+---
+
+## 📧 Contact
+
+**Tanay Khobaragade**  
+GitHub: [@tanaykhobaragade](https://github.com/tanaykhobaragade)  
+Project: [https://github.com/tanaykhobaragade/MBI](https://github.com/tanaykhobaragade/MBI)
+
+---
+
+**Happy Swing Trading! 📈**

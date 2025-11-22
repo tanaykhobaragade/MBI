@@ -94,12 +94,12 @@ def consolidate_date(date: datetime, symbols: list[str]) -> pd.DataFrame:
         # Calculate SMAs
         df = calculate_sma(df, SMA_PERIODS)
         
-        # Ensure Date column is datetime
-        df["Date"] = pd.to_datetime(df["Date"])
+        # Ensure Date column is normalized datetime for reliable comparisons
+        df["Date"] = pd.to_datetime(df["Date"]).dt.normalize()
         
         # Filter for specific date
         target_date = pd.Timestamp(date.date()).normalize()
-        df_date = df[df["Date"].dt.normalize() == target_date]
+        df_date = df[df["Date"] == target_date]
         
         if df_date.empty:
             logger.debug(f"No data for {symbol} on {date.date()}")
@@ -107,6 +107,10 @@ def consolidate_date(date: datetime, symbols: list[str]) -> pd.DataFrame:
         
         # Get the row for this date
         row = df_date.iloc[0]
+        
+        # Locate the previous closing price for true day-over-day calculations
+        prev_rows = df[df["Date"] < target_date]
+        prev_close = prev_rows["Close"].iloc[-1] if not prev_rows.empty else np.nan
         
         # Calculate 52-week high/low
         high_52w, low_52w = calculate_52week_high_low(df, date)
@@ -118,6 +122,7 @@ def consolidate_date(date: datetime, symbols: list[str]) -> pd.DataFrame:
             "High": row["High"],
             "Low": row["Low"],
             "Close": row["Close"],
+            "Prev_Close": prev_close,
             "Volume": row["Volume"],
             "High_52W": high_52w,
             "Low_52W": low_52w,

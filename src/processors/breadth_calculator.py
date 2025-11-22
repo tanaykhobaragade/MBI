@@ -36,6 +36,7 @@ def calculate_breadth_metrics(df: pd.DataFrame, date: datetime) -> dict[str, flo
         logger.error("No stocks to calculate breadth metrics")
         return {}
     
+    df = df.copy()
     metrics = {"Date": date.strftime("%Y-%m-%d")}
     
     # 1. 52-week High/Low percentages
@@ -46,9 +47,19 @@ def calculate_breadth_metrics(df: pd.DataFrame, date: datetime) -> dict[str, flo
     metrics["52WL(%)"] = round((at_52w_low / total_stocks) * 100, 2)
     
     # 2. Daily change 4.5+/- percentages
-    # Calculate percentage change from previous close
-    # For first calculation, we'll use (Close - Open) / Open
-    df["Daily_Change_Pct"] = ((df["Close"] - df["Open"]) / df["Open"]) * 100
+    # Prefer the previous close when available, otherwise fall back to open
+    if "Prev_Close" in df.columns:
+        base_price = df["Prev_Close"].replace(0, np.nan)
+    else:
+        base_price = df["Open"].replace(0, np.nan)
+    
+    df["Daily_Change_Pct"] = ((df["Close"] - base_price) / base_price) * 100
+    fallback_mask = df["Daily_Change_Pct"].isna()
+    if fallback_mask.any():
+        fallback_base = df.loc[fallback_mask, "Open"].replace(0, np.nan)
+        df.loc[fallback_mask, "Daily_Change_Pct"] = (
+            (df.loc[fallback_mask, "Close"] - fallback_base) / fallback_base
+        ) * 100
     
     up_4_5 = (df["Daily_Change_Pct"] > DAILY_CHANGE_THRESHOLD).sum()
     down_4_5 = (df["Daily_Change_Pct"] < -DAILY_CHANGE_THRESHOLD).sum()

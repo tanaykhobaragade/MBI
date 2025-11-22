@@ -14,6 +14,18 @@ from src.core.logger import get_logger
 
 logger = get_logger(__name__)
 
+# Explicit NSE equity trading holidays that aren't part of the generic
+# holidays.India() calendar. Each entry is (date, description).
+SPECIAL_NSE_HOLIDAYS: dict[int, list[tuple[str, str]]] = {
+    2025: [
+        ("2025-03-14", "Holi"),
+        ("2025-04-14", "Dr. B.R. Ambedkar Jayanti"),
+        ("2025-05-01", "Maharashtra Day"),
+        ("2025-08-27", "Ganesh Chaturthi"),
+        ("2025-10-22", "Diwali Balipratipada"),
+    ],
+}
+
 
 def get_nse_holidays(year: int) -> list[datetime]:
     """
@@ -70,18 +82,10 @@ def _get_nse_special_holidays(year: int) -> list[datetime]:
         Check NSE website for current year's holidays.
     """
     special_holidays = []
-    
-    # Example: Muhurat trading (Diwali) - NSE open for 1 hour, but we treat as holiday
-    # Add specific dates here as needed
-    
-    # For 2024-2025, add known special holidays
-    if year == 2024:
-        # Add Diwali special holidays if not already in India holidays
-        pass
-    
-    if year == 2025:
-        # Update with 2025 NSE holidays
-        pass
+    for date_str, name in SPECIAL_NSE_HOLIDAYS.get(year, []):
+        dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=IST)
+        special_holidays.append(dt)
+        logger.debug(f"Special NSE holiday: {date_str} - {name}")
     
     return special_holidays
 

@@ -1,0 +1,52 @@
+name: Deploy Dashboard
+
+on:
+  workflow_run:
+    workflows: ["Fetch Daily Data"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build static dashboard bundle
+        run: |
+          rm -rf site/dist
+          mkdir -p site/dist
+          if [ ! -f data/processed/market_breadth.csv ]; then
+            echo "market_breadth.csv not found. Did the data pipeline run?"
+            exit 1
+          fi
+          cp site/index.html site/dist/
+          cp site/styles.css site/dist/
+          cp site/app.js site/dist/
+          cp data/processed/market_breadth.csv site/dist/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload dashboard artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

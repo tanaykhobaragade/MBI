@@ -205,3 +205,24 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# MBI Project Specific
+# Logs
+logs/
+*.log
+
+# Data files (optional - comment out if you want to track data in git)
+# data/raw/stocks/*.csv
+# data/raw/daily/*.csv
+
+# Keep directory structure but ignore .gitkeep
+!data/**/.gitkeep
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db

@@ -1,0 +1,33 @@
+[project]
+name = "mbi"
+version = "1.0.0"
+description = "Automated Market Breadth Indicator for NIFTY MIDSMALLCAP 400"
+requires-python = ">=3.12"
+dependencies = [
+    "yfinance>=0.2.66",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "pytz>=2024.1",
+    "holidays>=0.58",
+    "requests>=2.32.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.1.0",
+    "pydantic>=2.7.0",
+    "rich>=13.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true

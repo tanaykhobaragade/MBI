@@ -1,0 +1,69 @@
+name: Fetch Daily Data
+
+on:
+  schedule:
+    # Run at 6:00 PM IST (12:30 PM UTC) every weekday
+    - cron: '30 12 * * 1-5'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  fetch-daily-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper commits
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install UV package manager
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      
+      - name: Install dependencies
+        run: |
+          uv pip install --system -r requirements.txt
+      
+      - name: Check if trading day
+        id: check_trading_day
+        run: |
+          python -c "
+          from src.utils.holiday_checker import is_trading_day, get_previous_trading_day
+          from src.core.timezone_handler import get_current_ist_time
+          
+          current = get_current_ist_time()
+          prev_trading_day = get_previous_trading_day(current)
+          
+          if is_trading_day(prev_trading_day):
+              print('is_trading_day=true')
+              print(f'target_date={prev_trading_day.strftime(\"%Y-%m-%d\")}')
+          else:
+              print('is_trading_day=false')
+          " >> $GITHUB_OUTPUT
+      
+      - name: Fetch daily data
+        if: steps.check_trading_day.outputs.is_trading_day == 'true'
+        run: |
+          python -m src.main daily
+      
+      - name: Commit and push changes
+        if: steps.check_trading_day.outputs.is_trading_day == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Daily data update: $(date +'%Y-%m-%d')" && git push)
+      
+      - name: Upload logs as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-fetch-logs
+          path: logs/
+          retention-days: 7

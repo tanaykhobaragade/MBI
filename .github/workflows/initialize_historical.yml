@@ -1,0 +1,102 @@
+name: Initialize Historical Data
+
+on:
+  workflow_dispatch:  # Manual trigger only
+    inputs:
+      days_back:
+        description: 'Number of days of historical data to fetch'
+        required: false
+        default: '365'
+        type: string
+
+jobs:
+  initialize-historical:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120  # 2 hours max
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install UV package manager
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      
+      - name: Install dependencies
+        run: |
+          uv pip install --system -r requirements.txt
+      
+      - name: Initialize historical data
+        run: |
+          python -m src.main init
+      
+      - name: Generate consolidated files
+        run: |
+          python -c "
+          from datetime import datetime, timedelta
+          from src.core.timezone_handler import get_current_ist_time
+          from src.fetchers.index_fetcher import get_symbols_list
+          from src.processors.date_consolidator import create_daily_consolidated_file
+          from src.utils.holiday_checker import is_trading_day
+          
+          symbols = get_symbols_list()
+          end_date = get_current_ist_time()
+          start_date = end_date - timedelta(days=${{ github.event.inputs.days_back }})
+          
+          current = start_date
+          while current <= end_date:
+              if is_trading_day(current):
+                  print(f'Processing {current.date()}...')
+                  try:
+                      create_daily_consolidated_file(current, symbols)
+                  except Exception as e:
+                      print(f'Failed for {current.date()}: {e}')
+              current = current + timedelta(days=1)
+          "
+      
+      - name: Calculate breadth metrics
+        run: |
+          python -c "
+          from datetime import datetime, timedelta
+          from src.core.timezone_handler import get_current_ist_time
+          from src.processors.breadth_calculator import calculate_all_metrics, save_breadth_data
+          
+          end_date = get_current_ist_time()
+          start_date = end_date - timedelta(days=${{ github.event.inputs.days_back }})
+          
+          print('Calculating breadth metrics...')
+          df = calculate_all_metrics(start_date, end_date)
+          
+          if not df.empty:
+              save_breadth_data(df)
+              print(f'Calculated metrics for {len(df)} dates')
+          else:
+              print('No metrics calculated')
+          "
+      
+      - name: Commit and push data
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Historical data initialization: $(date +'%Y-%m-%d')" && git push)
+      
+      - name: Create summary
+        run: |
+          python -m src.main status
+      
+      - name: Upload logs as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-init-logs
+          path: logs/
+          retention-days: 30

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Market Breadth Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Market Breadth Dashboard</h1>
+            <p>NIFTY MidSmallCap 400 · Latest 60 trading days</p>
+        </div>
+        <a id="downloadCsv" class="btn" href="market_breadth.csv" download>
+            Download CSV
+        </a>
+    </header>
+
+    <main>
+        <section class="summary" id="summary"></section>
+        <section class="table-container">
+            <table>
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </section>
+        <section class="log" id="status"></section>
+    </main>
+
+    <script src="app.js" type="module"></script>
+</body>
+</html>
